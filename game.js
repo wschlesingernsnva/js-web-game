@@ -36,8 +36,8 @@ function draw(canvas) {
 	} else {
 		hue = 0;
 	}
-	ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
-	ctx.lineTo(mousex, mousey);
+	ctx.moveTo(mousex, mousey);
+	ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
 	ctx.stroke();
 }
 
