@@ -11,7 +11,7 @@ function resizeCanvas(canvas) {
 	ctx.scale(ratio, ratio);
 }
 
-const prad = 10;
+const prad = 17;
 const grav = 0.5;
 const yspdMax = 5;
 const groundy = 500;
@@ -39,9 +39,14 @@ function draw(canvas) {
 	console.log(player.yspd);
 
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
+
 	ctx.beginPath();
+	ctx.fillStyle = "rgb(0, 0, 0)";
 	ctx.arc(150, player.y, prad, 0, Math.PI * 2);
 	ctx.fill();
+
+	ctx.fillStyle = "hsl(0, 0%, 90%)";
+	ctx.fillRect(0, groundy, canvas.width, canvas.height - groundy);
 }
 
 function main() {
