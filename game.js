@@ -11,8 +11,37 @@ function resizeCanvas(canvas) {
 	ctx.scale(ratio, ratio);
 }
 
+const prad = 10;
+const grav = 0.5;
+const yspdMax = 5;
+const groundy = 500;
+const yMax = groundy - prad;
+const jumpSpd = -12;
+
+let player = {
+	y: yMax,
+	yspd: 0,
+	bCollide: true,
+};
+
 function draw(canvas) {
 	let ctx = canvas.getContext("2d");
+
+	let newy = player.y + player.yspd;
+	if (newy >= yMax) {
+		newy = yMax;
+		player.bCollide = true;
+		player.yspd = 0;
+	} else {
+		player.yspd += grav;
+	}
+	player.y = newy;
+	console.log(player.yspd);
+
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	ctx.beginPath();
+	ctx.arc(150, player.y, prad, 0, Math.PI * 2);
+	ctx.fill();
 }
 
 function main() {
@@ -24,6 +53,15 @@ function main() {
 	});
 
 	setInterval(draw, 10, canvas);
+
+	document.addEventListener("keydown", (event) => {
+		console.log("keydown");
+		if (event.key === "ArrowUp" && player.bCollide) {
+			console.log(player.bCollide);
+			player.yspd += jumpSpd;
+			player.bCollide = false;
+		}
+	});
 }
 
 main();
