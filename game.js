@@ -27,6 +27,7 @@ let player = {
 function draw(canvas) {
 	let ctx = canvas.getContext("2d");
 
+	// Calculate player y
 	let newy = player.y + player.yspd;
 	if (newy >= yMax) {
 		player.y = yMax;
@@ -36,15 +37,17 @@ function draw(canvas) {
 		player.yspd += grav;
 		player.y = newy;
 	}
-	console.log(player.yspd);
 
+	// Reset canvas
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+	// Draw player
 	ctx.beginPath();
 	ctx.fillStyle = "rgb(0, 0, 0)";
 	ctx.arc(150, player.y, prad, 0, Math.PI * 2);
 	ctx.fill();
 
+	// Draw ground
 	ctx.fillStyle = "hsl(0, 0%, 90%)";
 	ctx.fillRect(0, groundy, canvas.width, canvas.height - groundy);
 }
@@ -60,9 +63,8 @@ function main() {
 	setInterval(draw, 10, canvas);
 
 	document.addEventListener("keydown", (event) => {
-		console.log("keydown");
 		if (event.key === "ArrowUp" && player.bCollide) {
-			console.log(player.bCollide);
+			// Jump
 			player.yspd += jumpSpd;
 			player.bCollide = false;
 		}
