@@ -11,11 +11,15 @@ function resizeCanvas(canvas) {
 	ctx.scale(ratio, ratio);
 }
 
-const prad = 17;
+const gcol = "hsl(0, 0%, 90%)";
+const pcol = "hsl(0, 0%, 0%)";
+
+const gy = 500;
+
 const grav = 0.5;
+const prad = 17;
 const yspdMax = 5;
-const groundy = 500;
-const yMax = groundy - prad;
+const yMax = gy - prad;
 const jumpSpd = -12;
 
 let player = {
@@ -23,6 +27,14 @@ let player = {
 	yspd: 0,
 	bCollide: true,
 };
+
+function init(canvas) {
+	let ctx = canvas.getContext("2d");
+
+	// Draw ground
+	ctx.fillStyle = gcol;
+	ctx.fillRect(0, gy, canvas.width, canvas.height - gy);
+}
 
 function draw(canvas) {
 	let ctx = canvas.getContext("2d");
@@ -39,17 +51,13 @@ function draw(canvas) {
 	}
 
 	// Reset canvas
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	ctx.clearRect(0, 0, canvas.width, gy);
 
 	// Draw player
 	ctx.beginPath();
-	ctx.fillStyle = "rgb(0, 0, 0)";
+	ctx.fillStyle = pcol;
 	ctx.arc(150, player.y, prad, 0, Math.PI * 2);
 	ctx.fill();
-
-	// Draw ground
-	ctx.fillStyle = "hsl(0, 0%, 90%)";
-	ctx.fillRect(0, groundy, canvas.width, canvas.height - groundy);
 }
 
 function main() {
@@ -60,6 +68,7 @@ function main() {
 		resizeCanvas(canvas);
 	});
 
+	init(canvas);
 	setInterval(draw, 10, canvas);
 
 	document.addEventListener("keydown", (event) => {
