@@ -29,13 +29,13 @@ function draw(canvas) {
 
 	let newy = player.y + player.yspd;
 	if (newy >= yMax) {
-		newy = yMax;
-		player.bCollide = true;
+		player.y = yMax;
 		player.yspd = 0;
+		player.bCollide = true;
 	} else {
 		player.yspd += grav;
+		player.y = newy;
 	}
-	player.y = newy;
 	console.log(player.yspd);
 
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
