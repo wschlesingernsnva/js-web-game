@@ -101,14 +101,13 @@ function onDeath() {
 function detectSpikeCollision() {
 	if (player.y + prad > gy - spikeHitboxHeight) {
 		for (spikeGroup of spikeGroups) {
-			if (
-				spikeGroup.x + spikeLen / 2 - spikeHitboxLen / 2 < playerx + prad &&
+			let boxLeft = spikeGroup.x + spikeLen / 2 - spikeHitboxLen / 2;
+			let boxRight =
 				spikeGroup.x +
-					(spikeGroup.size - 1) * spikeLen +
-					spikeLen / 2 +
-					spikeHitboxLen / 2 >
-					playerx
-			) {
+				(spikeGroup.size - 1) * spikeLen +
+				spikeLen / 2 +
+				spikeHitboxLen / 2;
+			if (boxLeft < playerx + prad && boxRight > playerx) {
 				onDeath();
 			}
 		}
@@ -182,19 +181,17 @@ function resizeCanvas() {
 	ctx.scale(ratio, ratio);
 }
 
-function setZoom() {
-	var scale = "scale(1)";
-	document.body.style.webkitTransform = scale;
-	document.body.style.msTransform = scale;
-	document.body.style.transform = scale;
-}
-
 function init() {
 	resizeCanvas();
 	drawGround();
 	addSpikes();
 
 	stepInterval = setInterval(step, 10);
+}
+
+function clearIntervals() {
+	clearInterval(stepInterval);
+	clearInterval(spikeTimeout);
 }
 
 function reset() {
@@ -204,13 +201,11 @@ function reset() {
 	player.y = yMax;
 	player.ySpd = 0;
 	player.onGround = true;
-	clearInterval(stepInterval);
-	clearInterval(spikeTimeout);
+	clearIntervals();
 	init();
 }
 
 function main() {
-	setZoom();
 	init();
 
 	window.addEventListener("resize", reset);
