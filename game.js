@@ -1,91 +1,104 @@
-function resizeCanvas(canvas) {
-	const ratio = window.devicePixelRatio;
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-	canvas.width = window.innerWidth * ratio;
-	canvas.height = window.innerHeight * ratio;
-	canvas.style.width = window.innerWidth + "px";
-	canvas.style.height = window.innerHeight + "px";
+let stepInterval = 0;
+let spikeTimeout = 0;
 
-	const ctx = canvas.getContext("2d");
-
-	ctx.scale(ratio, ratio);
-}
-
-const gcol = "hsl(0, 0%, 90%)";
-const pcol = "black";
-const scorecol = "black";
-
-const playerx = 150;
+// Ground
 const gy = 500;
 
-const grav = 0.3;
+// Player
+const playerx = 150;
 const prad = 17;
-const yspdMax = 5;
+const ySpdMax = 5;
 const yMax = gy - prad;
 const jumpSpd = -10;
+const grav = 0.3;
 
-let player = {
-	y: yMax,
-	yspd: 0,
-	bCollide: true,
-};
-
-function init(canvas) {
-	const ctx = canvas.getContext("2d");
-
-	// Draw ground
-	ctx.fillStyle = gcol;
-	ctx.fillRect(0, gy, window.innerWidth, canvas.height - gy);
-}
-
-const spikeGroups = [];
+// Spikes
+let spikeGroups = [];
 const spikeLen = 75;
 const spikeHeight = spikeLen;
 const spikeSpeed = 8;
 const spikeHitboxLen = spikeLen / 2;
 const spikeHitboxHeight = spikeHeight / 2;
 
-function draw(canvas) {
-	const ctx = canvas.getContext("2d");
+// Colors
+const gCol = "hsl(0, 0%, 90%)";
+const pCol = "black";
+const spikeCol = gCol;
+const scoreCol = "black";
+const highScoreCol = "hsl(0, 0%, 80%)";
 
-	// Calculate player y
-	let newy = player.y + player.yspd;
-	if (newy >= yMax) {
+const player = {
+	y: yMax,
+	ySpd: 0,
+	onGround: true,
+};
+
+let score = 0;
+let highScore = score;
+let scoreUpdatable = false;
+
+function updatePlayer() {
+	let yNew = player.y + player.ySpd;
+	if (yNew >= yMax) {
 		player.y = yMax;
-		player.yspd = 0;
-		player.bCollide = true;
+		player.ySpd = 0;
+		player.onGround = true;
 	} else {
-		player.yspd += grav;
-		player.y = newy;
+		player.ySpd += grav;
+		player.y = yNew;
 	}
+}
 
-	// Reset canvas
-	ctx.clearRect(0, 0, canvas.width, gy);
-
-	// Draw player
+function drawPlayer() {
 	ctx.beginPath();
-	ctx.fillStyle = pcol;
+	ctx.fillStyle = pCol;
 	ctx.arc(playerx, player.y, prad, 0, Math.PI * 2);
 	ctx.fill();
+}
 
-	// Draw spikes
-	for (spikeGroup of spikeGroups) {
-		for (let spikeIndex = 0; spikeIndex < spikeGroup.size; spikeIndex++) {
-			let startPoint = spikeGroup.x + spikeIndex * spikeLen;
-			ctx.beginPath();
-			ctx.fillStyle = gcol;
-			ctx.moveTo(startPoint, gy);
-			ctx.lineTo(startPoint + spikeLen / 2, gy - spikeHeight);
-			ctx.lineTo(startPoint + spikeLen, gy);
-			ctx.lineTo(startPoint, gy);
-			ctx.fill();
-		}
+function drawGround() {
+	ctx.fillStyle = gCol;
+	ctx.fillRect(0, gy, window.innerWidth, canvas.height - gy);
+}
+
+function updateScore() {
+	if (scoreUpdatable) {
+		score += 1;
 	}
+}
 
-	updateSpikes();
-	updateScore(canvas);
+function drawScore() {
+	ctx.textBaseline = "middle";
+	ctx.textAlign = "center";
 
-	// Detect spike collision
+	ctx.font = "30px sans-serif";
+	ctx.fillStyle = scoreCol;
+	ctx.fillText(score, window.innerWidth / 2, 80);
+
+	ctx.font = "20px sans-serif";
+	ctx.fillStyle = highScoreCol;
+	ctx.fillText(highScore, window.innerWidth / 2, 50);
+}
+
+function addSpikes() {
+	spikeGroups.push({
+		x: window.innerWidth,
+		size: Math.ceil(Math.random() * 3),
+	});
+	spikeTimeout = setTimeout(addSpikes, Math.random() * 500 + 700);
+}
+
+function onDeath() {
+	if (score > highScore) {
+		highScore = score;
+	}
+	reset();
+}
+
+function detectSpikeCollision() {
 	if (player.y + prad > gy - spikeHitboxHeight) {
 		for (spikeGroup of spikeGroups) {
 			if (
@@ -96,62 +109,117 @@ function draw(canvas) {
 					spikeHitboxLen / 2 >
 					playerx
 			) {
-				clearInterval(drawIntervalID);
+				onDeath();
 			}
 		}
 	}
 }
 
-function addSpikes() {
-	spikeGroups.push({
-		x: window.innerWidth,
-		size: Math.ceil(Math.random() * 3),
-	});
-	setTimeout(addSpikes, Math.random() * 500 + 700);
-}
-
 function updateSpikes() {
 	for (groupIndex in spikeGroups) {
 		let group = spikeGroups[groupIndex];
+
+		if (!scoreUpdatable && group.x < playerx) {
+			scoreUpdatable = true;
+		}
+
 		if (group.x + group.size * spikeLen < 0) {
 			spikeGroups.splice(groupIndex, 1);
 		} else {
 			group.x -= spikeSpeed;
 		}
 	}
+
+	detectSpikeCollision();
 }
 
-let score = 0;
-
-function updateScore(canvas) {
-	score += 1;
-	const ctx = canvas.getContext("2d");
-	ctx.fillStyle = scorecol;
-	ctx.font = "30px sans-serif";
-	ctx.textBaseline = "middle";
-	ctx.textAlign = "center";
-	ctx.fillText(score, window.innerWidth / 2, 80);
+function drawSpikes() {
+	for (spikeGroup of spikeGroups) {
+		for (let spikeIndex = 0; spikeIndex < spikeGroup.size; spikeIndex++) {
+			let startPoint = spikeGroup.x + spikeIndex * spikeLen;
+			ctx.beginPath();
+			ctx.fillStyle = gCol;
+			ctx.moveTo(startPoint, gy);
+			ctx.lineTo(startPoint + spikeLen / 2, gy - spikeHeight);
+			ctx.lineTo(startPoint + spikeLen, gy);
+			ctx.lineTo(startPoint, gy);
+			ctx.fill();
+		}
+	}
 }
 
-let drawIntervalID = 0;
+function clearCanvas() {
+	ctx.clearRect(0, 0, canvas.width, gy);
+}
 
-function main() {
-	const canvas = document.getElementById("canvas");
+function draw() {
+	clearCanvas();
 
-	resizeCanvas(canvas);
-	addEventListener("resize", () => {
-		resizeCanvas(canvas);
-	});
+	drawPlayer();
+	drawSpikes();
+	drawScore();
+}
 
-	init(canvas);
-	drawIntervalID = setInterval(draw, 10, canvas);
+function update() {
+	updatePlayer();
+	updateSpikes();
+	updateScore();
+}
+
+function step() {
+	draw();
+	update();
+}
+
+function resizeCanvas() {
+	const ratio = window.devicePixelRatio;
+
+	canvas.width = window.innerWidth * ratio;
+	canvas.height = window.innerHeight * ratio;
+	canvas.style.width = window.innerWidth + "px";
+	canvas.style.height = window.innerHeight + "px";
+
+	ctx.scale(ratio, ratio);
+}
+
+function setZoom() {
+	var scale = "scale(1)";
+	document.body.style.webkitTransform = scale;
+	document.body.style.msTransform = scale;
+	document.body.style.transform = scale;
+}
+
+function init() {
+	resizeCanvas();
+	drawGround();
 	addSpikes();
 
+	stepInterval = setInterval(step, 10);
+}
+
+function reset() {
+	spikeGroups.length = 0;
+
+	score = 0;
+	player.y = yMax;
+	player.ySpd = 0;
+	player.onGround = true;
+	clearInterval(stepInterval);
+	clearInterval(spikeTimeout);
+	init();
+}
+
+function main() {
+	setZoom();
+	init();
+
+	window.addEventListener("resize", reset);
+
+	// Jump
 	document.addEventListener("keydown", (event) => {
-		if (event.key === "ArrowUp" && player.bCollide) {
-			// Jump
-			player.yspd += jumpSpd;
-			player.bCollide = false;
+		if (event.key === "ArrowUp" && player.onGround) {
+			player.ySpd += jumpSpd;
+			player.onGround = false;
 		}
 	});
 }
