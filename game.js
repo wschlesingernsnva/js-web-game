@@ -4,6 +4,8 @@ const ctx = canvas.getContext("2d");
 let stepInterval = 0;
 let spikeTimeout = 0;
 
+let resizeTimeout = 0;
+
 // Ground
 const gy = 500;
 
@@ -24,17 +26,31 @@ const spikeHitboxLen = spikeLen / 2;
 const spikeHitboxHeight = spikeHeight / 2;
 
 // Colors
-let bgCol;
+let hue;
 let gCol;
+let bgCol;
 let highScoreCol;
 const pCol = "black";
 const spikeCol = gCol;
 const scoreCol = "black";
-function setColors() {
-	let baseHue = Math.floor(Math.random() * 255);
-	bgCol = `hsl(${baseHue}, 70%, 65%)`;
-	gCol = `hsl(${baseHue}, 30%, 30%)`;
-	highScoreCol = `hsl(${baseHue}, 20%, 20%)`;
+
+function setColors(hue) {
+	gCol = `hsl(${hue}, 28.6%, 30.2%)`;
+	bgCol = `hsl(${hue - 17}, 69.6%, 63.9%)`;
+	highScoreCol = `hsl(${hue}, 19.6%, 22%)`;
+}
+
+function genHue() {
+	return Math.random() * 255;
+}
+
+function updateColors() {
+	setColors(hue);
+}
+
+function newColors() {
+	hue = genHue();
+	updateColors();
 }
 
 const player = {
@@ -59,16 +75,21 @@ function updatePlayer() {
 	}
 }
 
+function drawGround() {
+	ctx.fillStyle = gCol;
+	ctx.fillRect(0, gy, canvas.width, canvas.height);
+}
+
+function drawBG() {
+	ctx.fillStyle = bgCol;
+	ctx.fillRect(0, 0, canvas.width, gy);
+}
+
 function drawPlayer() {
 	ctx.beginPath();
 	ctx.fillStyle = pCol;
 	ctx.arc(playerx, player.y, prad, 0, Math.PI * 2);
 	ctx.fill();
-}
-
-function drawGround() {
-	ctx.fillStyle = gCol;
-	ctx.fillRect(0, gy, window.innerWidth, canvas.height - gy);
 }
 
 function updateScore() {
@@ -155,13 +176,15 @@ function drawSpikes() {
 }
 
 function clearCanvas() {
-	ctx.fillStyle = bgCol;
-	ctx.fillRect(0, 0, canvas.width, gy);
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function draw() {
 	clearCanvas();
+	updateColors();
 
+	drawGround();
+	drawBG();
 	drawPlayer();
 	drawSpikes();
 	drawScore();
@@ -174,8 +197,8 @@ function update() {
 }
 
 function step() {
-	draw();
 	update();
+	draw();
 }
 
 function resizeCanvas() {
@@ -190,39 +213,48 @@ function resizeCanvas() {
 }
 
 function init() {
-	resizeCanvas();
-	setColors();
-	drawGround();
-	addSpikes();
-
-	stepInterval = setInterval(step, 10);
-}
-
-function clearIntervals() {
-	clearInterval(stepInterval);
-	clearInterval(spikeTimeout);
-}
-
-function reset() {
 	spikeGroups.length = 0;
-
 	score = 0;
 	scoreUpdatable = false;
 	player.y = yMax;
 	player.ySpd = 0;
 	player.onGround = true;
-	clearIntervals();
+
+	resizeCanvas();
+	newColors();
+
+	addSpikes();
+	stepInterval = setInterval(step, 10);
+}
+
+function stopGame() {
+	clearInterval(stepInterval);
+	clearInterval(spikeTimeout);
+}
+
+function reset() {
+	stopGame();
 	init();
+}
+
+function onResize() {
+	clearInterval(resizeTimeout);
+	resizeTimeout = setTimeout(reset, 50);
 }
 
 function main() {
 	init();
 
-	window.addEventListener("resize", reset);
+	window.addEventListener("resize", onResize);
 
 	// Jump
 	document.addEventListener("keydown", (event) => {
-		if (event.key === "ArrowUp" && player.onGround) {
+		if (
+			(event.code === "ArrowUp" ||
+				event.code === "Space" ||
+				event.code === "KeyW") &&
+			player.onGround
+		) {
 			player.ySpd += jumpSpd;
 			player.onGround = false;
 		}
