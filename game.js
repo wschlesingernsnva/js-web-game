@@ -198,6 +198,7 @@ function reset() {
 	spikeGroups.length = 0;
 
 	score = 0;
+	scoreUpdatable = false;
 	player.y = yMax;
 	player.ySpd = 0;
 	player.onGround = true;
