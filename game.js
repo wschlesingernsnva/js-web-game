@@ -24,11 +24,18 @@ const spikeHitboxLen = spikeLen / 2;
 const spikeHitboxHeight = spikeHeight / 2;
 
 // Colors
-const gCol = "hsl(0, 0%, 90%)";
+let bgCol;
+let gCol;
+let highScoreCol;
 const pCol = "black";
 const spikeCol = gCol;
 const scoreCol = "black";
-const highScoreCol = "hsl(0, 0%, 80%)";
+function setColors() {
+	let baseHue = Math.floor(Math.random() * 255);
+	bgCol = `hsl(${baseHue}, 70%, 65%)`;
+	gCol = `hsl(${baseHue}, 30%, 30%)`;
+	highScoreCol = `hsl(${baseHue}, 20%, 20%)`;
+}
 
 const player = {
 	y: yMax,
@@ -148,7 +155,8 @@ function drawSpikes() {
 }
 
 function clearCanvas() {
-	ctx.clearRect(0, 0, canvas.width, gy);
+	ctx.fillStyle = bgCol;
+	ctx.fillRect(0, 0, canvas.width, gy);
 }
 
 function draw() {
@@ -183,6 +191,7 @@ function resizeCanvas() {
 
 function init() {
 	resizeCanvas();
+	setColors();
 	drawGround();
 	addSpikes();
 
