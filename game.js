@@ -51,7 +51,7 @@ let playerDead = false;
 let gameSpeed;
 const gameSpeedMultiplier = 1.15;
 let nextScore;
-const nextScoreMultiplier = 1.5;
+const nextScoreMultiplier = 2;
 
 function setColors(hue) {
 	gCol = `hsl(${hue}, 28.6%, 30.2%)`;
