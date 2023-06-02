@@ -118,14 +118,16 @@ function updateScore() {
 }
 
 function drawScore() {
+	const fontFamily = "sans-serif";
+
 	ctx.textBaseline = "middle";
 	ctx.textAlign = "center";
 
-	ctx.font = "30px sans-serif";
+	ctx.font = "30px " + fontFamily;
 	ctx.fillStyle = scoreCol;
 	ctx.fillText(score, window.innerWidth / 2, 80);
 
-	ctx.font = "20px sans-serif";
+	ctx.font = "20px " + fontFamily;
 	ctx.fillStyle = highScoreCol;
 	ctx.fillText(highScore, window.innerWidth / 2, 50);
 }
