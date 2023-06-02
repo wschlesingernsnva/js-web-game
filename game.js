@@ -48,9 +48,10 @@ let highScore = score;
 let scoreUpdatable = false;
 let playerDead = false;
 
-let gameSpeed = 1;
-let scoreInterval = 500;
-let nextScore = scoreInterval;
+let gameSpeed;
+const gameSpeedMultiplier = 1.15;
+let nextScore;
+const nextScoreMultiplier = 1.5;
 
 function setColors(hue) {
 	gCol = `hsl(${hue}, 28.6%, 30.2%)`;
@@ -110,6 +111,10 @@ function updateScore() {
 	if (scoreUpdatable) {
 		score += 1;
 	}
+	if (score >= nextScore) {
+		gameSpeed *= gameSpeedMultiplier;
+		nextScore *= nextScoreMultiplier;
+	}
 }
 
 function drawScore() {
@@ -130,7 +135,7 @@ function addSpikes() {
 		x: window.innerWidth,
 		size: Math.ceil(Math.random() * 3),
 	});
-	spikeTimeout = setTimeout(addSpikes, (Math.random() * 600 + 825) / gameSpeed);
+	spikeTimeout = setTimeout(addSpikes, (Math.random() * 600 + 850) / gameSpeed);
 }
 
 function onDeath() {
@@ -196,6 +201,11 @@ function clearCanvas() {
 
 function draw() {
 	clearCanvas();
+
+	hue += 0.01;
+	if (hue > 255) {
+		hue = 0;
+	}
 	updateColors();
 
 	drawGround();
@@ -232,9 +242,14 @@ function resizeCanvas() {
 }
 
 function init() {
+	gameSpeed = 1;
+	nextScore = 500;
+
 	spikeGroups.length = 0;
+
 	score = 0;
 	scoreUpdatable = false;
+
 	player.y = yMax;
 	player.ySpd = 0;
 	player.onGround = true;
