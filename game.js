@@ -1,8 +1,9 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-let stepInterval = 0;
+let stepTimeout = 0;
 let spikeTimeout = 0;
+let jumpTimeout = 0;
 
 let resizeTimeout = 0;
 
@@ -34,6 +35,23 @@ const pCol = "black";
 const spikeCol = gCol;
 const scoreCol = "black";
 
+const player = {
+	y: yMax,
+	ySpd: 0,
+	onGround: true,
+};
+
+let jumpKeyDown = false;
+
+let score = 0;
+let highScore = score;
+let scoreUpdatable = false;
+let playerDead = false;
+
+let gameSpeed = 1;
+let scoreInterval = 500;
+let nextScore = scoreInterval;
+
 function setColors(hue) {
 	gCol = `hsl(${hue}, 28.6%, 30.2%)`;
 	bgCol = `hsl(${hue - 17}, 69.6%, 63.9%)`;
@@ -53,16 +71,6 @@ function newColors() {
 	updateColors();
 }
 
-const player = {
-	y: yMax,
-	ySpd: 0,
-	onGround: true,
-};
-
-let score = 0;
-let highScore = score;
-let scoreUpdatable = false;
-
 function updatePlayer() {
 	let yNew = player.y + player.ySpd;
 	if (yNew >= yMax) {
@@ -72,6 +80,12 @@ function updatePlayer() {
 	} else {
 		player.ySpd += grav;
 		player.y = yNew;
+	}
+
+	// Jump
+	if (player.onGround && jumpKeyDown) {
+		player.ySpd += jumpSpd;
+		player.onGround = false;
 	}
 }
 
@@ -116,10 +130,11 @@ function addSpikes() {
 		x: window.innerWidth,
 		size: Math.ceil(Math.random() * 3),
 	});
-	spikeTimeout = setTimeout(addSpikes, Math.random() * 500 + 700);
+	spikeTimeout = setTimeout(addSpikes, (Math.random() * 600 + 825) / gameSpeed);
 }
 
 function onDeath() {
+	playerDead = true;
 	if (score > highScore) {
 		highScore = score;
 	}
@@ -199,6 +214,10 @@ function update() {
 function step() {
 	update();
 	draw();
+
+	if (!playerDead) {
+		stepTimeout = setTimeout(step, 10 / gameSpeed);
+	}
 }
 
 function resizeCanvas() {
@@ -224,12 +243,15 @@ function init() {
 	newColors();
 
 	addSpikes();
-	stepInterval = setInterval(step, 10);
+	step();
+
+	playerDead = false;
 }
 
 function stopGame() {
-	clearInterval(stepInterval);
+	clearInterval(stepTimeout);
 	clearInterval(spikeTimeout);
+	clearInterval(jumpTimeout);
 }
 
 function reset() {
@@ -250,13 +272,21 @@ function main() {
 	// Jump
 	document.addEventListener("keydown", (event) => {
 		if (
+			!jumpKeyDown &&
 			(event.code === "ArrowUp" ||
 				event.code === "Space" ||
-				event.code === "KeyW") &&
-			player.onGround
+				event.code === "KeyW")
 		) {
-			player.ySpd += jumpSpd;
-			player.onGround = false;
+			jumpKeyDown = true;
+		}
+	});
+	document.addEventListener("keyup", (event) => {
+		if (
+			event.code === "ArrowUp" ||
+			event.code === "Space" ||
+			event.code === "KeyW"
+		) {
+			jumpKeyDown = false;
 		}
 	});
 }
