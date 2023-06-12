@@ -205,7 +205,7 @@ function draw() {
 	clearCanvas();
 
 	hue += 0.01;
-	if (hue > 255) {
+	if (hue > 360) {
 		hue = 0;
 	}
 	updateColors();
